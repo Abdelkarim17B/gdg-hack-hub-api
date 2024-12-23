@@ -49,7 +49,7 @@ export class SubmissionsService {
 
     // If participant, only show their team's submissions
     if (user?.role === Role.PARTICIPANT) {
-      queryBuilder.where('team.memberEmails @> ARRAY[:email]', { email: user.email });
+      queryBuilder.where('team.memberEmails LIKE :email', { email: `%${user.email}%` });
     }
 
     if (query.teamId) {
