@@ -1,2 +1,5 @@
 node_modules
 .env
+hackathon_platform.db
+hackathon_platform.db-shm
+hackathon_platform.db-wal

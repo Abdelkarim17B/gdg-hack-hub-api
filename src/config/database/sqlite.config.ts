@@ -5,7 +5,7 @@ import { entities } from './entities.config';
 
 export const getSqliteConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
   type: 'sqlite',
-  database: join(process.cwd(), configService.get('DB_DATABASE', 'hackathon_gdg_hack_hub.db')),
+  database: join(process.cwd(), configService.get('DB_DATABASE', 'hackathon_platform.db')),
   entities,
   synchronize: configService.get('NODE_ENV') !== 'production',
   logging: configService.get('DB_LOGGING', 'false') === 'true',
