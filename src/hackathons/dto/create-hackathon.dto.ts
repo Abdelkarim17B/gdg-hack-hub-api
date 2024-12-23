@@ -34,6 +34,16 @@ export class CreateHackathonDto {
   @Min(1)
   maxParticipants: number;
 
+  @ApiProperty()
+  @IsNumber()
+  // @Min(1)
+  maxTeamSize: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(1)
+  minTeamSize: number;
+
   @ApiProperty({ enum: HackathonStatus })
   @IsEnum(HackathonStatus)
   status: HackathonStatus;
