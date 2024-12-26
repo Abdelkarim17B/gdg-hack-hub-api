@@ -31,7 +31,7 @@ export class TeamRegistrationController {
     );
   }
 
-  @Get('validate-emails')
+  @Post('validate-emails')
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Validate if emails are available for team registration' })
   @ApiResponse({ 
