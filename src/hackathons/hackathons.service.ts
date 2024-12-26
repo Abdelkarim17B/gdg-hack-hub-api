@@ -20,34 +20,39 @@ export class HackathonsService {
   }
 
   async findAll(query: QueryHackathonDto, pagination: PaginationDto) {
-    const queryBuilder = this.hackathonRepository.createQueryBuilder('hackathon');
+    try {
+      const queryBuilder = this.hackathonRepository.createQueryBuilder('hackathon');
 
-    if (query.search) {
-      queryBuilder.where('hackathon.title ILIKE :search OR hackathon.description ILIKE :search', {
-        search: `%${query.search}%`,
-      });
+      if (query.search) {
+        queryBuilder.where('hackathon.title ILIKE :search OR hackathon.description ILIKE :search', {
+          search: `%${query.search}%`,
+        });
+      }
+
+      if (query.status) {
+        queryBuilder.andWhere('hackathon.status = :status', { status: query.status });
+      }
+
+      if (query.sortBy) {
+        queryBuilder.orderBy(`hackathon.${query.sortBy}`, query.sortOrder || 'ASC');
+      }
+
+      const skip = (pagination.page - 1) * pagination.limit;
+      queryBuilder.skip(skip).take(pagination.limit);
+
+      const [items, total] = await queryBuilder.getManyAndCount();
+
+      return {
+        items,
+        total,
+        page: pagination.page,
+        limit: pagination.limit,
+        pages: Math.ceil(total / pagination.limit),
+      };
+    } catch (error) {
+      console.log(`Failed to find hackathons: ${error.message}`);
+      throw new Error(`Failed to find hackathons: ${error.message}`);
     }
-
-    if (query.status) {
-      queryBuilder.andWhere('hackathon.status = :status', { status: query.status });
-    }
-
-    if (query.sortBy) {
-      queryBuilder.orderBy(`hackathon.${query.sortBy}`, query.sortOrder || 'ASC');
-    }
-
-    const skip = (pagination.page - 1) * pagination.limit;
-    queryBuilder.skip(skip).take(pagination.limit);
-
-    const [items, total] = await queryBuilder.getManyAndCount();
-
-    return {
-      items,
-      total,
-      page: pagination.page,
-      limit: pagination.limit,
-      pages: Math.ceil(total / pagination.limit),
-    };
   }
 
   async findOne(id: string): Promise<Hackathon> {
