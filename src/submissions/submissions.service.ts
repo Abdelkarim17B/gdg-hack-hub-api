@@ -35,7 +35,7 @@ export class SubmissionsService {
 
     const submission = this.submissionRepository.create({
       ...createSubmissionDto,
-      teamId: team.id
+      teamId: createSubmissionDto.teamId 
     });
 
     return await this.submissionRepository.save(submission);
@@ -90,6 +90,8 @@ export class SubmissionsService {
       where: { id },
       relations: ['team', 'team.hackathon', 'team.challenge']
     });
+    console.log(submission)
+    
 
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${id} not found`);
