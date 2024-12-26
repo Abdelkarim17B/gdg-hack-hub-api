@@ -28,7 +28,7 @@ export class Submission {
   }[];
 
   @ManyToOne(() => Team, team => team.submissions)
-  @JoinColumn({ name: 'team_id' })
+  @JoinColumn({ name: 'teamId' })
   team: Team;
 
   @Column()

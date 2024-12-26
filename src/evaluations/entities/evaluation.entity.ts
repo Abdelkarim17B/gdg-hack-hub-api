@@ -9,21 +9,21 @@ export class Evaluation {
   id: string;
 
   @ManyToOne(() => Submission, submission => submission.evaluations)
-  @JoinColumn({ name: 'submission_id' })
+  @JoinColumn({ name: 'submissionId' })
   submission: Submission;
 
   @Column()
   submissionId: string;
 
   @ManyToOne(() => User, user => user.evaluations)
-  @JoinColumn({ name: 'judge_id' })
+  @JoinColumn({ name: 'judgeId' })
   judge: User;
 
   @Column()
   judgeId: string;
 
   @ManyToOne(() => JudgingCriteria)
-  @JoinColumn({ name: 'criteria_id' })
+  @JoinColumn({ name: 'criteriaId' })
   criteria: JudgingCriteria;
 
   @Column()
