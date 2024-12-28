@@ -33,9 +33,11 @@ export class UsersService {
 
     return await this.userRepository.save(user);
   }
-
   async findAll(pagination: PaginationDto) {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
+    if (pagination.type) {
+      queryBuilder.andWhere('user.role = :type', { type: pagination.type });
+    }
     const helper = new QueryBuilderHelper(queryBuilder);
 
     helper

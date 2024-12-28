@@ -17,4 +17,8 @@ export class PaginationDto {
   @Min(1)
   @Max(100)
   limit?: number = 10;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  type?: string;
 }

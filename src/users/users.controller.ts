@@ -10,7 +10,7 @@ import {
   UseGuards,
   BadRequestException
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -41,8 +41,13 @@ export class UsersController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Return all users.' })
-  async findAll(@Query() pagination: PaginationDto) {
-    return this.usersService.findAll(pagination);
+  @ApiQuery({ name: 'type', required: false, description: 'Filter users by type' })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number', type: Number })
+  @ApiQuery({ name: 'limit', required: false, description: 'Number of items per page', type: Number })
+  async findAll(
+    @Query() pagination: PaginationDto,
+) {
+    return this.usersService.findAll(pagination)
   }
 
   @Get(':id')
