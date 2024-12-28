@@ -30,11 +30,11 @@ export class TeamRegistrationService {
     const hackathon = await this.hackathonRepository.findOne({ 
       where: { id: hackathonId } 
     });
-
+  
     if (!hackathon) {
       throw new BadRequestException(`Hackathon with ID ${hackathonId} not found`);
     }
-
+  
     // Validate team sizes
     for (const data of registrationData) {
       if (data.memberEmails.length < hackathon.minTeamSize || 
@@ -44,25 +44,37 @@ export class TeamRegistrationService {
         );
       }
     }
-
-    // Validate all challenges exist
-    const challengeIds = [...new Set(registrationData.map(data => data.challengeId))];
-    const challenges = await this.challengeRepository.findByIds(challengeIds);
-    
-    if (challenges.length !== challengeIds.length) {
-      throw new BadRequestException('One or more challenge IDs are invalid');
+  
+    // Filter and validate non-null challenge IDs
+    const providedChallengeIds = registrationData
+      .map(data => data.challengeId)
+      .filter(challengeId => challengeId !== null);
+  
+    if (providedChallengeIds.length > 0) {
+      const uniqueChallengeIds = [...new Set(providedChallengeIds)];
+      const challenges = await this.challengeRepository.findByIds(uniqueChallengeIds);
+  
+      // Identify invalid challenge IDs
+      const validChallengeIds = challenges.map(challenge => challenge.id);
+      const invalidChallengeIds = uniqueChallengeIds.filter(id => !validChallengeIds.includes(id));
+  
+      if (invalidChallengeIds.length > 0) {
+        console.error('Invalid challenge IDs:', invalidChallengeIds); // Print invalid challenge IDs
+        throw new BadRequestException(`Invalid challenge IDs: ${invalidChallengeIds.join(', ')}`);
+      }
     }
-
+  
     // Create teams
     const teams = registrationData.map(data => this.teamRepository.create({
       name: data.teamName,
       memberEmails: data.memberEmails,
       hackathonId,
-      challengeId: data.challengeId
+      challengeId: data.challengeId, // This can still be null
     }))
-
+  
     return await this.teamRepository.save(teams);
   }
+  
 
   async validateTeamRegistration(hackathonId: string, memberEmails: string[]): Promise<boolean> {
     // Check if any email is already registered in another team for this hackathon
@@ -97,7 +109,7 @@ export class TeamRegistrationService {
       })
 
       return {
-        data: teams,
+        teams: teams,
         total,
         page,
         limit

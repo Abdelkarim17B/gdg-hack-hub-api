@@ -22,7 +22,8 @@ export class Team {
   challenge: Challenge;
 
   @Column()
-  challengeId?: string;
+  @Column({ nullable: true })
+  challengeId: string;
 
   @OneToMany(() => Submission, submission => submission.team)
   submissions: Submission[];
