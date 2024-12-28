@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Team } from '../entities/team.entity';
 import { Challenge } from '../entities/challenge.entity';
 import { Hackathon } from '../entities/hackathon.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 interface TeamRegistrationData {
   teamName: string;
@@ -55,7 +56,7 @@ export class TeamRegistrationService {
       memberEmails: data.memberEmails,
       hackathonId,
       challengeId: data.challengeId
-    }));
+    }))
 
     return await this.teamRepository.save(teams);
   }
@@ -71,5 +72,35 @@ export class TeamRegistrationService {
     );
 
     return !memberEmails.some(email => registeredEmails.has(email));
+  }
+
+  async getAllTeams(hackathonId: string, pagination: PaginationDto) {
+    try {
+      const hackathon = await this.hackathonRepository.findOne({
+        where: {
+          id: hackathonId
+        }
+      });
+
+      if (!hackathon) {
+        throw new NotFoundException('Hackathon not found');
+      }
+
+      const { page = 1, limit = 10 } = pagination;
+      const [teams, total] = await this.teamRepository.findAndCount({
+        where: { hackathonId },
+        take: limit,
+        skip: (page - 1) * limit
+      })
+
+      return {
+        data: teams,
+        total,
+        page,
+        limit
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
