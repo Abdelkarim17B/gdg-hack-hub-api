@@ -52,18 +52,31 @@ export class TeamRegistrationController {
 
     @Get('')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'get All Teams' })
+    @ApiOperation({ summary: 'Get all teams' })
     @ApiResponse({ 
       status: 200, 
-      description: 'Returns All teams.', 
+      description: 'Returns all teams.', 
     })
     async getAllTeams(
       @Param('hackathonId') hackathonId: string,
-      @Query()  pagination:PaginationDto,
-
-    ){
-      return this.teamRegistrationService.getAllTeams(hackathonId,pagination)
+      @Query() pagination: PaginationDto,
+    ) {
+      return this.teamRegistrationService.getAllTeams(hackathonId, pagination);
     }
     
+    @Post('add-participant')
+    @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Add participant to team' })
+    @ApiResponse({ 
+      status: 200, 
+      description: 'Participant added to team successfully.', 
+    })
+    async addParticipantToTeam(
+      @Param('hackathonId') hackathonId: string,
+      @Body('teamId') teamId: string,
+      @Body('participantId') participantId: string,
+    ) {
+      return this.teamRegistrationService.addParticipantToTeam(hackathonId, teamId, participantId)
+    }
   
 }

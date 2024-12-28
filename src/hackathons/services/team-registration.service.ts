@@ -5,6 +5,7 @@ import { Team } from '../entities/team.entity';
 import { Challenge } from '../entities/challenge.entity';
 import { Hackathon } from '../entities/hackathon.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { User } from 'src/users/entities/user.entity';
 
 interface TeamRegistrationData {
   teamName: string;
@@ -21,6 +22,8 @@ export class TeamRegistrationService {
     private readonly challengeRepository: Repository<Challenge>,
     @InjectRepository(Hackathon)
     private readonly hackathonRepository: Repository<Hackathon>,
+    @InjectRepository(User)
+    private readonly UserRepository :Repository<User>
   ) {}
 
   async registerTeamsFromSheet(hackathonId: string, registrationData: TeamRegistrationData[]): Promise<Team[]> {
@@ -74,7 +77,7 @@ export class TeamRegistrationService {
     return !memberEmails.some(email => registeredEmails.has(email));
   }
 
-  async getAllTeams(hackathonId: string, pagination: PaginationDto) {
+ async getAllTeams(hackathonId: string, pagination: PaginationDto) {
     try {
       const hackathon = await this.hackathonRepository.findOne({
         where: {
@@ -102,5 +105,33 @@ export class TeamRegistrationService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+  async addParticipantToTeam(hackathonId: string, teamId: string, participantId: string): Promise<void> {
+
+    const user =await this.UserRepository.findOne({
+      where:{
+        id:participantId
+      }
+    })
+    if(!user){
+      throw new NotFoundException('participant not found')
+    }
+    const alreadyNotInTeam=await this.validateTeamRegistration(hackathonId,[user.email])
+    if(!alreadyNotInTeam){
+      throw new BadRequestException('Participant is already registered in another team for this hackathon');
+    }
+    const team = await this.teamRepository.findOne({ where: { id: teamId, hackathonId } });
+
+    if (!team) {
+      throw new NotFoundException(`Team with ID ${teamId} not found in hackathon ${hackathonId}`);
+    }
+
+    if (team.memberEmails.includes(participantId)) {
+      throw new BadRequestException(`Participant with ID ${participantId} is already in the team`)
+    }
+
+    team.memberEmails.push(participantId);
+    await this.teamRepository.save(team)
+    // Participant added to team successfully
   }
 }

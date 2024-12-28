@@ -22,7 +22,7 @@ export class Team {
   challenge: Challenge;
 
   @Column()
-  challengeId: string;
+  challengeId?: string;
 
   @OneToMany(() => Submission, submission => submission.team)
   submissions: Submission[];

@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsUUID, IsEmail, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsString, IsArray, IsUUID, IsEmail, ArrayMinSize, ArrayMaxSize, isUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TeamRegistrationDto {
@@ -22,4 +22,19 @@ export class BulkTeamRegistrationDto {
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
   teams: TeamRegistrationDto[];
+}
+export class BodySchemaDto {
+  @ApiProperty({ type: [String], description: 'List of emails to validate' })
+  @IsArray()
+  @IsString({ each: true })
+  emails: string[];
+}
+export class AddParticipantToTeamDto {
+  @ApiProperty()
+  @IsUUID()
+  teamId: string;
+
+  @ApiProperty()
+  @IsUUID()
+  participantId: string;
 }
