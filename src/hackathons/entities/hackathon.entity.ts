@@ -23,6 +23,12 @@ export class Hackathon {
   @Column('text')
   description: string;
 
+  @Column('text', { nullable: true })
+  location: string;
+
+  @Column('text', { nullable: true })
+  theme: string;
+
   @Column('datetime')
   startDate: Date;
 

@@ -14,6 +14,15 @@ export class CreateHackathonDto {
   @IsString()
   description: string;
 
+  @ApiProperty({ required: false })
+  @IsString()
+  location?: string | null;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  theme?: string;
+
   @ApiProperty()
   @Type(() => Date)
   @IsDate()
