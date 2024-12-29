@@ -146,4 +146,32 @@ export class TeamRegistrationService {
     await this.teamRepository.save(team)
     // Participant added to team successfully
   }
+
+  async removeParticipantFromTeam(hackathonId: string, participantEmail: string): Promise<void> {
+    const team = await this.teamRepository.findOne({
+      where: {
+        hackathonId,
+        memberEmails: participantEmail
+      }
+    });
+
+    if (!team) {
+      throw new NotFoundException(`Participant with email ${participantEmail} is not in any team for hackathon ${hackathonId}`);
+    }
+
+    team.memberEmails = team.memberEmails.filter(email => email !== participantEmail);
+    await this.teamRepository.save(team);
+    // Participant removed from team successfully
+  }
+  async getOneTeam(hackathonId: string, teamId: string): Promise<Team> {
+    const team = await this.teamRepository.findOne({
+      where: { id: teamId, hackathonId }
+    });
+
+    if (!team) {
+      throw new NotFoundException(`Team with ID ${teamId} not found in hackathon ${hackathonId}`);
+    }
+
+    return team;
+  }
 }

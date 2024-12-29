@@ -5,7 +5,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { TeamRegistrationService } from '../services/team-registration.service';
-import { AddParticipantToTeamDto, BodySchemaDto, BulkTeamRegistrationDto } from '../dto/team-registration.dto';
+import { AddParticipantToTeamDto, BodySchemaDto, BulkTeamRegistrationDto, removeParticipantFromTeamDto } from '../dto/team-registration.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('teams')
@@ -65,6 +65,21 @@ export class TeamRegistrationController {
     ) {
       return this.teamRegistrationService.getAllTeams(hackathonId, pagination);
     }
+    @Get(':id')
+    @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Get one team' })
+    @ApiResponse({ 
+      status: 200, 
+      description: 'Returns one team.', 
+    })
+    @ApiParam({ name: 'hackathonId', required: true })
+    @ApiParam({ name: 'id', required: true })
+    async getOneTeam(
+      @Param('hackathonId') hackathonId: string,
+      @Param('id') id: string,
+    ) {
+      return this.teamRegistrationService.getOneTeam(hackathonId, id);
+    }
     
     @Post('add-participant')
     @Roles(Role.ADMIN)
@@ -82,5 +97,25 @@ export class TeamRegistrationController {
     ) {
       return this.teamRegistrationService.addParticipantToTeam(hackathonId, teamId, participantId)
     }
+    
+    @Post('remove-participant-from-team')
+    @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Add participant to team' })
+    @ApiResponse({ 
+      status: 200, 
+      description: 'Participant added to team successfully.', 
+    })
+    @ApiParam({ name: 'hackathonId', required: true })
+    @ApiBody({ type: removeParticipantFromTeamDto })
+    async removeParticipantFromTeam(
+      @Param('hackathonId') hackathonId: string,
+      @Body('participantEmail') participantEmail: string
+    ) {
+      return this.teamRegistrationService.removeParticipantFromTeam(
+        hackathonId, 
+        participantEmail
+      )
+    }
+
   
 }

@@ -38,3 +38,8 @@ export class AddParticipantToTeamDto {
   @IsUUID()
   participantId: string;
 }
+export class removeParticipantFromTeamDto {
+  @ApiProperty()
+  @IsEmail()
+  participantEmail: string;
+} 
