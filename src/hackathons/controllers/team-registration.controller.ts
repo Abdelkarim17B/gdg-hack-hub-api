@@ -1,11 +1,11 @@
 import { Controller, Post, Body, Param, Get, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { TeamRegistrationService } from '../services/team-registration.service';
-import { BodySchemaDto, BulkTeamRegistrationDto } from '../dto/team-registration.dto';
+import { AddParticipantToTeamDto, BodySchemaDto, BulkTeamRegistrationDto } from '../dto/team-registration.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('teams')
@@ -57,6 +57,8 @@ export class TeamRegistrationController {
       status: 200, 
       description: 'Returns all teams.', 
     })
+    @ApiParam({ name: 'hackathonId', required: true })
+    // @ApiQuery({ type: PaginationDto })
     async getAllTeams(
       @Param('hackathonId') hackathonId: string,
       @Query() pagination: PaginationDto,
@@ -71,6 +73,8 @@ export class TeamRegistrationController {
       status: 200, 
       description: 'Participant added to team successfully.', 
     })
+    @ApiParam({ name: 'hackathonId', required: true })
+    @ApiBody({ type: AddParticipantToTeamDto })
     async addParticipantToTeam(
       @Param('hackathonId') hackathonId: string,
       @Body('teamId') teamId: string,

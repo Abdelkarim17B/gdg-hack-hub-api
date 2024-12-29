@@ -82,7 +82,7 @@ export class SubmissionsService {
       page: pagination.page,
       limit: pagination.limit,
       pages: Math.ceil(total / pagination.limit),
-    };
+    }
   }
 
   async findOne(id: string, user: User): Promise<Submission> {
@@ -90,7 +90,6 @@ export class SubmissionsService {
       where: { id },
       relations: ['team', 'team.hackathon', 'team.challenge']
     });
-    console.log(submission)
     
 
     if (!submission) {
