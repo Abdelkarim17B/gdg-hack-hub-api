@@ -22,7 +22,7 @@ export class CreateJudgingCriteriaDto {
   @Max(100)
   maxScore: number;
 
-  @ApiProperty()
-  @IsUUID()
-  hackathonId: string;
+  // @ApiProperty()
+  // @IsUUID()
+  // hackathonId: string;
 }

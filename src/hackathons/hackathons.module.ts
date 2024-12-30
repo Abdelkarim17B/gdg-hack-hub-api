@@ -4,7 +4,7 @@ import { HackathonsService } from './hackathons.service';
 import { HackathonsController } from './hackathons.controller';
 import { TeamRegistrationController } from './controllers/team-registration.controller';
 import { WinnersController } from './controllers/winners.controller';
-import { ChallengeService, TeamRegistrationService, WinnerDeterminationService } from './services';
+import { ChallengeService, JudgingCriteriaService, TeamRegistrationService, WinnerDeterminationService } from './services';
 import { Hackathon } from './entities/hackathon.entity';
 import { Challenge } from './entities/challenge.entity';
 import { Team } from './entities/team.entity';
@@ -13,6 +13,7 @@ import { JudgingCriteria } from './entities/judging-criteria.entity';
 import { Submission } from '../submissions/entities/submission.entity';
 import { Evaluation } from '../evaluations/entities/evaluation.entity';
 import { ChallengeController } from './controllers/challenge.controller';
+import { JudgingCriteriaController } from './controllers/judgingCriteria.controller';
 
 @Module({
   imports: [
@@ -30,19 +31,22 @@ import { ChallengeController } from './controllers/challenge.controller';
     HackathonsController,
     TeamRegistrationController,
     WinnersController,
-    ChallengeController
+    ChallengeController,
+    JudgingCriteriaController
   ],
   providers: [
     HackathonsService,
     TeamRegistrationService,
     WinnerDeterminationService,
-    ChallengeService
+    ChallengeService,
+    JudgingCriteriaService
   ],
   exports: [
     HackathonsService,
     TeamRegistrationService,
     WinnerDeterminationService,
-    ChallengeService
+    ChallengeService,
+    JudgingCriteriaService
   ],
 })
 export class HackathonsModule {}
