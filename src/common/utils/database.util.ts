@@ -19,16 +19,18 @@ export async function initializeDatabase(repositories: Repository<any>[]): Promi
 
   try {
     await queryRunner.connect();
-    
-    // Configure SQLite pragmas outside transaction
-    await queryRunner.query('PRAGMA journal_mode = WAL');
-    await queryRunner.query('PRAGMA busy_timeout = 20000');
-    await queryRunner.query('PRAGMA synchronous = NORMAL');
-    await queryRunner.query('PRAGMA foreign_keys = ON');
-    
+
+    // 🛑 Remove SQLite-specific PRAGMA commands
+    if (queryRunner.connection.options.type === 'sqlite') {
+      await queryRunner.query('PRAGMA journal_mode = WAL');
+      await queryRunner.query('PRAGMA busy_timeout = 20000');
+      await queryRunner.query('PRAGMA synchronous = NORMAL');
+      await queryRunner.query('PRAGMA foreign_keys = ON');
+    }
+
     // Start transaction for schema sync
     await queryRunner.startTransaction();
-    
+
     try {
       // Sync schema within transaction
       await queryRunner.commitTransaction();
@@ -42,6 +44,7 @@ export async function initializeDatabase(repositories: Repository<any>[]): Promi
     await queryRunner.release();
   }
 }
+
 
 export async function paginate<T>(
   queryBuilder: SelectQueryBuilder<T>,

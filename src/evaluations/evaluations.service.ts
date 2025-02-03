@@ -10,6 +10,7 @@ import { User } from '../users/entities/user.entity';
 import { Role } from '../common/enums/role.enum';
 import { JudgingCriteria } from '../hackathons/entities/judging-criteria.entity';
 import { JudgeAssignment } from '../hackathons/entities/judge-assignment.entity';
+import { Submission } from '../submissions/entities/submission.entity';
 
 @Injectable()
 export class EvaluationsService {
@@ -20,13 +21,15 @@ export class EvaluationsService {
     private judgingCriteriaRepository: Repository<JudgingCriteria>,
     @InjectRepository(JudgeAssignment)
     private judgeAssignmentRepository: Repository<JudgeAssignment>,
+    @InjectRepository(Submission)
+    private submissionRepository: Repository<Submission>,
   ) {}
 
   async create(createEvaluationDto: CreateEvaluationDto, user: User): Promise<Evaluation> {
     // Verify judge is assigned to this hackathon
     const criteria = await this.judgingCriteriaRepository.findOne({
       where: { id: createEvaluationDto.criteriaId },
-      relations: ['hackathon']
+      relations: ['hackathon'],
     });
 
     if (!criteria) {
@@ -35,9 +38,9 @@ export class EvaluationsService {
 
     const assignment = await this.judgeAssignmentRepository.findOne({
       where: {
-        judgeId: user.id,
-        hackathonId: criteria.hackathon.id
-      }
+        judge: { id: user.id },
+        hackathon: { id: criteria.hackathon.id },
+      },
     });
 
     if (!assignment) {
@@ -49,9 +52,20 @@ export class EvaluationsService {
       throw new ForbiddenException(`Score must be between 0 and ${criteria.maxScore}`);
     }
 
+    const submission = await this.submissionRepository.findOne({
+      where: { id: createEvaluationDto.submissionId },
+    });
+
+    if (!submission) {
+      throw new NotFoundException('Submission not found');
+    }
+
     const evaluation = this.evaluationRepository.create({
-      ...createEvaluationDto,
-      judgeId: user.id
+      submission: submission,
+      judge: user,
+      criteria: criteria,
+      score: createEvaluationDto.score,
+      feedback: createEvaluationDto.feedback,
     });
 
     return await this.evaluationRepository.save(evaluation);
@@ -66,18 +80,18 @@ export class EvaluationsService {
       .leftJoinAndSelect('team.hackathon', 'hackathon');
 
     if (user?.role === Role.JUDGE) {
-      queryBuilder.where('evaluation.judgeId = :judgeId', { judgeId: user.id });
+      queryBuilder.where('evaluation.judge = :judge', { judge: user });
     }
 
     if (query.submissionId) {
-      queryBuilder.andWhere('evaluation.submissionId = :submissionId', {
-        submissionId: query.submissionId
+      queryBuilder.andWhere('evaluation.submission = :submission', {
+        submission: { id: query.submissionId },
       });
     }
 
     if (query.judgeId) {
-      queryBuilder.andWhere('evaluation.judgeId = :judgeId', {
-        judgeId: query.judgeId
+      queryBuilder.andWhere('evaluation.judge = :judge', {
+        judge: { id: query.judgeId },
       });
     }
 
@@ -99,14 +113,14 @@ export class EvaluationsService {
   async findOne(id: string, user: User): Promise<Evaluation> {
     const evaluation = await this.evaluationRepository.findOne({
       where: { id },
-      relations: ['judge', 'submission', 'criteria', 'submission.team', 'submission.team.hackathon']
+      relations: ['judge', 'submission', 'criteria', 'submission.team', 'submission.team.hackathon'],
     });
 
     if (!evaluation) {
       throw new NotFoundException(`Evaluation with ID ${id} not found`);
     }
 
-    if (user.role === Role.JUDGE && evaluation.judgeId !== user.id) {
+    if (user.role === Role.JUDGE && evaluation.judge.id !== user.id) {
       throw new ForbiddenException('You can only access your own evaluations');
     }
 
@@ -115,15 +129,19 @@ export class EvaluationsService {
 
   async update(id: string, updateEvaluationDto: UpdateEvaluationDto, user: User): Promise<Evaluation> {
     const evaluation = await this.findOne(id, user);
-    
-    if (user.role === Role.JUDGE && evaluation.judgeId !== user.id) {
+
+    if (user.role === Role.JUDGE && evaluation.judge.id !== user.id) {
       throw new ForbiddenException('You can only update your own evaluations');
     }
 
     if (updateEvaluationDto.score !== undefined) {
       const criteria = await this.judgingCriteriaRepository.findOne({
-        where: { id: evaluation.criteriaId }
+        where: { id: evaluation.criteria.id },
       });
+
+      if (!criteria) {
+        throw new NotFoundException('Judging criteria not found');
+      }
 
       if (updateEvaluationDto.score < 0 || updateEvaluationDto.score > criteria.maxScore) {
         throw new ForbiddenException(`Score must be between 0 and ${criteria.maxScore}`);
@@ -136,8 +154,8 @@ export class EvaluationsService {
 
   async remove(id: string, user: User): Promise<void> {
     const evaluation = await this.findOne(id, user);
-    
-    if (user.role === Role.JUDGE && evaluation.judgeId !== user.id) {
+
+    if (user.role === Role.JUDGE && evaluation.judge.id !== user.id) {
       throw new ForbiddenException('You can only delete your own evaluations');
     }
 

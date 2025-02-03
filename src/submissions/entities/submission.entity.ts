@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Column, 
+  CreateDateColumn, 
+  ManyToOne, 
+  OneToMany, 
+  JoinColumn 
+} from 'typeorm';
 import { Team } from '../../hackathons/entities/team.entity';
 import { Evaluation } from '../../evaluations/entities/evaluation.entity';
 
@@ -28,11 +36,8 @@ export class Submission {
   }[];
 
   @ManyToOne(() => Team, team => team.submissions)
-  @JoinColumn({ name: 'teamId' })
+  @JoinColumn({ name: 'teamId' }) // This automatically creates "teamId"
   team: Team;
-
-  @Column()
-  teamId: string;
 
   @Column({
     type: 'text',
@@ -44,6 +49,6 @@ export class Submission {
   @OneToMany(() => Evaluation, evaluation => evaluation.submission)
   evaluations: Evaluation[];
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   submittedAt: Date;
 }

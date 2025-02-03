@@ -22,7 +22,7 @@ export class SubmissionsService {
   async create(createSubmissionDto: CreateSubmissionDto, user: User): Promise<Submission> {
     // Find team by ID and verify user is a member
     const team = await this.teamRepository.findOne({
-      where: { id: createSubmissionDto.teamId }
+      where: { id: createSubmissionDto.teamId },
     });
 
     if (!team) {
@@ -35,7 +35,7 @@ export class SubmissionsService {
 
     const submission = this.submissionRepository.create({
       ...createSubmissionDto,
-      teamId: createSubmissionDto.teamId 
+      team: team, // ✅ Use relation instead of raw ID
     });
 
     return await this.submissionRepository.save(submission);
@@ -53,14 +53,14 @@ export class SubmissionsService {
     }
 
     if (query.teamId) {
-      queryBuilder.andWhere('submission.teamId = :teamId', {
-        teamId: query.teamId
+      queryBuilder.andWhere('submission.team = :team', {
+        team: { id: query.teamId }, // ✅ Use relation
       });
     }
 
     if (query.status) {
-      queryBuilder.andWhere('submission.status = :status', { 
-        status: query.status 
+      queryBuilder.andWhere('submission.status = :status', {
+        status: query.status,
       });
     }
 
@@ -82,15 +82,14 @@ export class SubmissionsService {
       page: pagination.page,
       limit: pagination.limit,
       pages: Math.ceil(total / pagination.limit),
-    }
+    };
   }
 
   async findOne(id: string, user: User): Promise<Submission> {
     const submission = await this.submissionRepository.findOne({
       where: { id },
-      relations: ['team', 'team.hackathon', 'team.challenge']
+      relations: ['team', 'team.hackathon', 'team.challenge'], // ✅ Ensure relations are loaded
     });
-    
 
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${id} not found`);
@@ -98,7 +97,7 @@ export class SubmissionsService {
 
     // Verify user has access
     if (user.role === Role.PARTICIPANT && !submission.team.memberEmails.includes(user.email)) {
-      throw new ForbiddenException('You can only access your team\'s submissions');
+      throw new ForbiddenException("You can only access your team's submissions");
     }
 
     return submission;
@@ -106,9 +105,9 @@ export class SubmissionsService {
 
   async update(id: string, updateSubmissionDto: UpdateSubmissionDto, user: User): Promise<Submission> {
     const submission = await this.findOne(id, user);
-    
+
     if (user.role === Role.PARTICIPANT && !submission.team.memberEmails.includes(user.email)) {
-      throw new ForbiddenException('You can only update your team\'s submissions');
+      throw new ForbiddenException("You can only update your team's submissions");
     }
 
     Object.assign(submission, updateSubmissionDto);
@@ -117,9 +116,9 @@ export class SubmissionsService {
 
   async remove(id: string, user: User): Promise<void> {
     const submission = await this.findOne(id, user);
-    
+
     if (user.role === Role.PARTICIPANT && !submission.team.memberEmails.includes(user.email)) {
-      throw new ForbiddenException('You can only delete your team\'s submissions');
+      throw new ForbiddenException("You can only delete your team's submissions");
     }
 
     await this.submissionRepository.remove(submission);

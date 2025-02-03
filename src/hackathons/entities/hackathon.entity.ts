@@ -29,13 +29,13 @@ export class Hackathon {
   @Column('text', { nullable: true })
   theme: string;
 
-  @Column('datetime')
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   startDate: Date;
 
-  @Column('datetime')
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   endDate: Date;
 
-  @Column('datetime')
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   registrationDeadline: Date;
 
   @Column()
@@ -69,9 +69,9 @@ export class Hackathon {
   @OneToMany(() => JudgingCriteria, criteria => criteria.hackathon)
   judgingCriteria: JudgingCriteria[];
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }
