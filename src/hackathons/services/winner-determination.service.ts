@@ -19,7 +19,6 @@ export interface TeamScore {
   }[];
 }
 
-
 @Injectable()
 export class WinnerDeterminationService {
   constructor(
@@ -35,12 +34,12 @@ export class WinnerDeterminationService {
 
   async determineWinners(hackathonId: string): Promise<TeamScore[]> {
     const teams = await this.teamRepository.find({
-      where: { hackathonId },
-      relations: ['submissions', 'submissions.evaluations', 'challenge']
+      where: { hackathon: { id: hackathonId } }, // ✅ Use relation
+      relations: ['submissions', 'submissions.evaluations', 'challenge'],
     });
 
     const criteria = await this.judgingCriteriaRepository.find({
-      where: { hackathonId }
+      where: { hackathon: { id: hackathonId } }, // ✅ Use relation
     });
 
     const teamScores: TeamScore[] = [];
@@ -52,40 +51,42 @@ export class WinnerDeterminationService {
       if (!latestSubmission) continue;
 
       const criteriaScores = await Promise.all(
-        criteria.map(async criterion => {
+        criteria.map(async (criterion) => {
           const evaluations = await this.evaluationRepository.find({
             where: {
-              submissionId: latestSubmission.id,
-              criteriaId: criterion.id
-            }
+              submission: { id: latestSubmission.id }, // ✅ Use relation
+              criteria: { id: criterion.id }, // ✅ Use relation
+            },
           });
 
           // Calculate average score for this criterion
-          const avgScore = evaluations.length > 0
-            ? evaluations.reduce((acc, evaluation) => acc + evaluation.score, 0) / evaluations.length
-            : 0;
+          const avgScore =
+            evaluations.length > 0
+              ? evaluations.reduce((acc, evaluation) => acc + evaluation.score, 0) /
+                evaluations.length
+              : 0;
 
           return {
             criteriaId: criterion.id,
             criteriaName: criterion.name,
             score: avgScore,
-            weight: criterion.weight
+            weight: criterion.weight,
           };
         })
       );
 
       // Calculate total weighted score
       const totalScore = criteriaScores.reduce(
-        (sum, { score, weight }) => sum + (score * weight), 
+        (sum, { score, weight }) => sum + score * weight,
         0
       );
 
       teamScores.push({
         teamId: team.id,
         teamName: team.name,
-        challengeId: team.challengeId,
+        challengeId: team.challenge.id, // ✅ Use relation
         totalScore,
-        criteriaScores
+        criteriaScores,
       });
     }
 
@@ -94,17 +95,17 @@ export class WinnerDeterminationService {
 
   async getWinnersByChallenge(hackathonId: string): Promise<Record<string, TeamScore[]>> {
     const allScores = await this.determineWinners(hackathonId);
-    
+
     const winnersByChallenge: Record<string, TeamScore[]> = {};
-    
-    allScores.forEach(score => {
+
+    allScores.forEach((score) => {
       if (!winnersByChallenge[score.challengeId]) {
         winnersByChallenge[score.challengeId] = [];
       }
       winnersByChallenge[score.challengeId].push(score);
     });
 
-    Object.values(winnersByChallenge).forEach(teams => {
+    Object.values(winnersByChallenge).forEach((teams) => {
       teams.sort((a, b) => b.totalScore - a.totalScore);
     });
 

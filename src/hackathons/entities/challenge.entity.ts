@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Hackathon } from './hackathon.entity';
 import { Team } from './team.entity';
 
@@ -16,18 +25,16 @@ export class Challenge {
   @Column('text')
   criteria: string;
 
-  @ManyToOne(() => Hackathon, hackathon => hackathon.challenges)
+  @ManyToOne(() => Hackathon, (hackathon) => hackathon.challenges)
+  @JoinColumn({ name: 'hackathonId' }) // This will automatically create the hackathonId column
   hackathon: Hackathon;
 
-  @Column()
-  hackathonId: string;
-
-  @OneToMany(() => Team, team => team.challenge)
+  @OneToMany(() => Team, (team) => team.challenge)
   teams: Team[];
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

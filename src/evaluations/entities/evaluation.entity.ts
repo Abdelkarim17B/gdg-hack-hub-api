@@ -9,25 +9,16 @@ export class Evaluation {
   id: string;
 
   @ManyToOne(() => Submission, submission => submission.evaluations)
-  @JoinColumn({ name: 'submissionId' })
+  @JoinColumn({ name: 'submissionId' }) // ✅ Ensures correct FK name
   submission: Submission;
 
-  @Column()
-  submissionId: string;
-
   @ManyToOne(() => User, user => user.evaluations)
-  @JoinColumn({ name: 'judgeId' })
+  @JoinColumn({ name: 'judgeId' }) // ✅ Ensures correct FK name
   judge: User;
 
-  @Column()
-  judgeId: string;
-
   @ManyToOne(() => JudgingCriteria)
-  @JoinColumn({ name: 'criteriaId' })
+  @JoinColumn({ name: 'criteriaId' }) // ✅ Ensures correct FK name
   criteria: JudgingCriteria;
-
-  @Column()
-  criteriaId: string;
 
   @Column('decimal', { precision: 5, scale: 2 })
   score: number;
@@ -35,6 +26,6 @@ export class Evaluation {
   @Column('text')
   feedback: string;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   evaluatedAt: Date;
 }

@@ -19,6 +19,6 @@ export class JudgeAssignment {
   @Column()
   judgeId: string;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   assignedAt: Date;
 }
